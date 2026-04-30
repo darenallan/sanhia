@@ -1,0 +1,2119 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sanhia</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --obsidian: #0a0a0b;
+        --obsidian2: #111114;
+        --obsidian3: #1a1a1f;
+        --obsidian4: #242429;
+        --gold: #c9a84c;
+        --gold2: #e8c97a;
+        --gold3: #f5e0a0;
+        --gold-dim: rgba(201, 168, 76, 0.15);
+        --gold-glow: rgba(201, 168, 76, 0.08);
+        --white: #f0ede8;
+        --gray: #7a7a85;
+        --gray2: #4a4a55;
+        --green: #2ecc71;
+        --radius: 8px;
+        --radius-sm: 4px;
+      }
+      html,
+      body {
+        background: var(--obsidian);
+        color: var(--white);
+        font-family: "DM Sans", sans-serif;
+        overflow: hidden;
+        height: 100%;
+        width: 100%;
+      }
+
+      /* ── SLIDES ── */
+      #deck {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        min-height: 500px;
+      }
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.45s ease,
+          transform 0.45s ease;
+        transform: translateY(20px);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .slide.active {
+        opacity: 1;
+        pointer-events: all;
+        transform: translateY(0);
+      }
+      .slide.exit {
+        opacity: 0;
+        transform: translateY(-16px);
+      }
+
+      /* ── NAV ── */
+      #nav {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(17, 17, 20, 0.9);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(201, 168, 76, 0.2);
+        border-radius: 100px;
+        padding: 0.6rem 1.4rem;
+        z-index: 999;
+      }
+      .nav-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--gray2);
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+        border: none;
+        outline: none;
+      }
+      .nav-dot.on {
+        background: var(--gold);
+        transform: scale(1.25);
+      }
+      .nav-btn {
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        font-size: 0.85rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 100px;
+        transition:
+          color 0.2s,
+          background 0.2s;
+      }
+      .nav-btn:hover {
+        color: var(--gold);
+        background: var(--gold-glow);
+      }
+      #slide-counter {
+        font-family: "Syne", sans-serif;
+        font-size: 0.72rem;
+        color: var(--gray);
+        letter-spacing: 0.08em;
+        min-width: 40px;
+        text-align: center;
+      }
+
+      /* ── TYPOGRAPHY ── */
+      .label {
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .label::before {
+        content: "";
+        display: inline-block;
+        width: 16px;
+        height: 1px;
+        background: var(--gold);
+      }
+      h1 {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 900;
+        font-size: clamp(3rem, 8vw, 6rem);
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+      }
+      h2 {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 700;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      h3 {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+      .sub {
+        font-size: 1rem;
+        font-weight: 300;
+        color: var(--gray);
+        line-height: 1.7;
+      }
+      .gold {
+        color: var(--gold);
+      }
+      .gold2 {
+        color: var(--gold2);
+      }
+
+      /* ── LAYOUT ── */
+      .pad {
+        padding: 3.5rem 4rem;
+      }
+      .pad-sm {
+        padding: 2.5rem 4rem;
+      }
+      .center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 100vh;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: start;
+      }
+      .grid3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.2rem;
+      }
+      .grid4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+      }
+
+      /* ── CARDS ── */
+      .card {
+        background: var(--obsidian3);
+        border: 1px solid rgba(201, 168, 76, 0.12);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        transition:
+          border-color 0.25s,
+          background 0.25s;
+        position: relative;
+        overflow: hidden;
+      }
+      .card:hover {
+        border-color: rgba(201, 168, 76, 0.3);
+        background: var(--obsidian4);
+      }
+      .card-icon {
+        font-size: 1.4rem;
+        margin-bottom: 0.8rem;
+        display: block;
+      }
+      .card-title {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 0.45rem;
+      }
+      .card-desc {
+        font-size: 0.8rem;
+        color: var(--gray);
+        line-height: 1.6;
+      }
+
+      /* ── TAG ── */
+      .tag {
+        display: inline-block;
+        font-size: 0.62rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 1px solid rgba(201, 168, 76, 0.25);
+        color: var(--gold);
+        background: var(--gold-glow);
+        padding: 0.2rem 0.55rem;
+        border-radius: 100px;
+      }
+
+      /* ── STAT ── */
+      .stat-num {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 900;
+        font-size: 2.4rem;
+        color: var(--white);
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .stat-num .u {
+        font-size: 1.1rem;
+        color: var(--gold);
+      }
+      .stat-label {
+        font-size: 0.72rem;
+        color: var(--gray);
+        letter-spacing: 0.04em;
+        margin-top: 0.3rem;
+      }
+
+      /* ── DIVIDER ── */
+      .hr {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(201, 168, 76, 0.3),
+          transparent
+        );
+        margin: 1.5rem 0;
+      }
+
+      /* ── HERO BG ── */
+      .hero-bg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .hero-bg::before {
+        content: "SANHIA";
+        position: absolute;
+        bottom: -2rem;
+        right: -2rem;
+        font-family: "Unbounded", sans-serif;
+        font-weight: 900;
+        font-size: 22vw;
+        color: rgba(201, 168, 76, 0.03);
+        line-height: 1;
+        letter-spacing: -0.05em;
+        white-space: nowrap;
+        user-select: none;
+      }
+      .dot-grid {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          circle,
+          rgba(201, 168, 76, 0.12) 1px,
+          transparent 1px
+        );
+        background-size: 40px 40px;
+        mask-image: radial-gradient(
+          ellipse 80% 80% at 50% 50%,
+          black 20%,
+          transparent 80%
+        );
+      }
+
+      /* ── PILLARS ── */
+      .pillar {
+        background: var(--obsidian3);
+        border: 1px solid rgba(201, 168, 76, 0.1);
+        border-radius: var(--radius);
+        padding: 2rem 1.8rem;
+        border-top: 2px solid var(--gold);
+      }
+      .pillar-num {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 900;
+        font-size: 3.5rem;
+        color: rgba(201, 168, 76, 0.12);
+        line-height: 1;
+        margin-bottom: 0.8rem;
+      }
+      .pillar-title {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--white);
+        margin-bottom: 0.7rem;
+      }
+      .pillar-desc {
+        font-size: 0.82rem;
+        color: var(--gray);
+        line-height: 1.65;
+      }
+
+      /* ── STACK ── */
+      .stack-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: var(--obsidian3);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-sm);
+        padding: 1rem 1.2rem;
+        transition: border-color 0.2s;
+      }
+      .stack-item:hover {
+        border-color: rgba(201, 168, 76, 0.25);
+      }
+      .stack-icon {
+        font-size: 1.3rem;
+        flex-shrink: 0;
+      }
+      .stack-name {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 0.88rem;
+      }
+      .stack-desc {
+        font-size: 0.75rem;
+        color: var(--gray);
+      }
+
+      /* ── TIMELINE ── */
+      .timeline {
+        position: relative;
+        padding-left: 2rem;
+      }
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 0.6rem;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: linear-gradient(
+          180deg,
+          var(--gold),
+          rgba(201, 168, 76, 0.1)
+        );
+      }
+      .t-item {
+        position: relative;
+        padding-bottom: 1.8rem;
+      }
+      .t-dot {
+        position: absolute;
+        left: -1.68rem;
+        top: 0.3rem;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--gold);
+        border: 2px solid var(--obsidian);
+      }
+      .t-phase {
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.2rem;
+      }
+      .t-title {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+      }
+      .t-desc {
+        font-size: 0.78rem;
+        color: var(--gray);
+        line-height: 1.5;
+      }
+
+      /* ── MARKET RINGS ── */
+      .rings {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        position: relative;
+        flex-wrap: wrap;
+      }
+      .ring {
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: absolute;
+        transition: transform 0.3s;
+        cursor: default;
+      }
+      .ring:hover {
+        transform: scale(1.04);
+      }
+      .ring-val {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 900;
+        font-size: 1.1rem;
+        color: var(--white);
+        line-height: 1;
+      }
+      .ring-label {
+        font-size: 0.65rem;
+        color: var(--gray);
+        margin-top: 0.3rem;
+        letter-spacing: 0.04em;
+      }
+
+      /* ── CHART ── */
+      .chart-wrap {
+        background: var(--obsidian3);
+        border: 1px solid rgba(201, 168, 76, 0.1);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+      }
+      .chart-title {
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray);
+        margin-bottom: 1rem;
+      }
+
+      /* ── FEATURE LIST ── */
+      .feat-list {
+        list-style: none;
+      }
+      .feat-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.7rem;
+        padding: 0.55rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 0.88rem;
+        color: var(--gray);
+      }
+      .feat-list li::before {
+        content: "◆";
+        color: var(--gold);
+        font-size: 0.5rem;
+        flex-shrink: 0;
+        margin-top: 0.3rem;
+      }
+      .feat-list li strong {
+        color: var(--white);
+        font-weight: 500;
+      }
+
+      /* ── PROBLEM/SOLUTION ── */
+      .ps-col {
+        padding: 2rem;
+        border-radius: var(--radius);
+      }
+      .ps-before {
+        background: rgba(255, 50, 50, 0.04);
+        border: 1px solid rgba(255, 80, 80, 0.12);
+      }
+      .ps-after {
+        background: rgba(201, 168, 76, 0.04);
+        border: 1px solid rgba(201, 168, 76, 0.2);
+      }
+      .ps-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.7rem;
+        padding: 0.5rem 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+      .ps-x {
+        color: #ff6b6b;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+      }
+      .ps-check {
+        color: var(--gold);
+        font-size: 0.7rem;
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+      }
+
+      /* ── SCROLL within slide ── */
+      .slide-inner {
+        padding: 3.5rem 4rem;
+        min-height: 100vh;
+      }
+
+      /* ── BRAND ── */
+      .brand-ring {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        border: 1.5px solid var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--gold-glow);
+        margin-bottom: 2rem;
+        position: relative;
+      }
+      .brand-ring::after {
+        content: "";
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 1px solid rgba(201, 168, 76, 0.15);
+      }
+      .brand-name {
+        font-family: "Unbounded", sans-serif;
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: var(--gold);
+        letter-spacing: 0.02em;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 720px) {
+        .pad,
+        .pad-sm {
+          padding: 2rem 1.5rem;
+        }
+        .slide-inner {
+          padding: 2rem 1.5rem;
+        }
+        .grid2,
+        .grid3,
+        .grid4 {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 3rem;
+        }
+        h2 {
+          font-size: 1.8rem;
+        }
+        #nav {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="deck">
+      <!-- ══ SLIDE 0 : COVER ══ -->
+      <div class="slide active" id="s0">
+        <div class="center pad" style="position: relative; min-height: 100vh">
+          <div class="hero-bg"><div class="dot-grid"></div></div>
+          <div style="position: relative; z-index: 1">
+            <div class="brand-ring"><span class="brand-name">S</span></div>
+            <div
+              class="label"
+              style="justify-content: center; margin-bottom: 1.2rem"
+            >
+              Burkina Faso · E-Commerce Premium
+            </div>
+            <h1 style="margin-bottom: 1rem">SANHIA</h1>
+            <p class="sub" style="max-width: 480px; margin: 0 auto 2.5rem">
+              La première marketplace premium d'Afrique de l'Ouest — pensée pour
+              valoriser le commerce burkinabè avec une expérience
+              <span class="gold">Awwwards-level.</span>
+            </p>
+            <div
+              style="
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+              "
+            >
+              <span class="tag">Firebase · Vanilla JS</span>
+              <span class="tag">Ouagadougou</span>
+              <span class="tag">MVP en cours</span>
+              <span class="tag">2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 1 : PROBLÈME ══ -->
+      <div class="slide" id="s1">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">Le Problème</div>
+          <h2 style="margin-bottom: 0.6rem">
+            Le commerce burkinabè<br /><span class="gold">mérite mieux.</span>
+          </h2>
+          <p class="sub" style="margin-bottom: 2.5rem; max-width: 560px">
+            Le marché est là — les acheteurs sont là — mais l'infrastructure
+            numérique fait défaut.
+          </p>
+          <div class="grid2" style="gap: 1.5rem">
+            <div class="ps-col ps-before">
+              <div
+                style="
+                  font-size: 0.7rem;
+                  letter-spacing: 0.1em;
+                  text-transform: uppercase;
+                  color: #ff8080;
+                  margin-bottom: 1rem;
+                "
+              >
+                Aujourd'hui
+              </div>
+              <div class="ps-item">
+                <span class="ps-x">✕</span
+                ><span>Marchés informels sans visibilité en ligne</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-x">✕</span
+                ><span>Paiement uniquement en espèces — friction maximale</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-x">✕</span
+                ><span>Aucune marketplace locale avec identité africaine</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-x">✕</span
+                ><span>Vendeurs sans outils de gestion ni analytics</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-x">✕</span
+                ><span>Expérience acheteur dégradée vs standards globaux</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-x">✕</span
+                ><span>Confiance faible envers le commerce en ligne</span>
+              </div>
+            </div>
+            <div class="ps-col ps-after">
+              <div
+                style="
+                  font-size: 0.7rem;
+                  letter-spacing: 0.1em;
+                  text-transform: uppercase;
+                  color: var(--gold);
+                  margin-bottom: 1rem;
+                "
+              >
+                Avec Sanhia
+              </div>
+              <div class="ps-item">
+                <span class="ps-check">◆</span
+                ><span>Vitrine numérique premium pour chaque vendeur</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-check">◆</span
+                ><span>Mobile Money, Orange Money, cartes — intégré</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-check">◆</span
+                ><span
+                  >Identité visuelle 100% burkinabè, langue Mooré/Fulfuldé</span
+                >
+              </div>
+              <div class="ps-item">
+                <span class="ps-check">◆</span
+                ><span
+                  >Dashboard vendeur avec commandes et revenus en temps
+                  réel</span
+                >
+              </div>
+              <div class="ps-item">
+                <span class="ps-check">◆</span
+                ><span>UX Awwwards-level — aussi belle que Shopify</span>
+              </div>
+              <div class="ps-item">
+                <span class="ps-check">◆</span
+                ><span>Système de confiance : avis, badges, garanties</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 2 : QU'EST-CE QUE SANHIA ══ -->
+      <div class="slide" id="s2">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">La Vision</div>
+          <h2 style="margin-bottom: 0.6rem">
+            Une marketplace.<br /><span class="gold">Pas juste un site.</span>
+          </h2>
+          <p class="sub" style="margin-bottom: 2.5rem; max-width: 560px">
+            Sanhia (du mooré/fulfuldé — "rassembler, partager") connecte
+            acheteurs et vendeurs dans une expérience qui rend fière l'Afrique
+            de l'Ouest.
+          </p>
+          <div class="grid3">
+            <div class="pillar">
+              <div class="pillar-num">01</div>
+              <div class="pillar-title">Premium par défaut</div>
+              <div class="pillar-desc">
+                Design obsidian & gold, typographies Unbounded + Instrument
+                Serif + Syne. Une identité visuelle taillée pour l'Awwwards.
+              </div>
+            </div>
+            <div class="pillar">
+              <div class="pillar-num">02</div>
+              <div class="pillar-title">Techniquement solide</div>
+              <div class="pillar-desc">
+                Firebase Firestore + Hosting + Functions. Auth, storage, push
+                notifications FCM. Architecture serverless scalable.
+              </div>
+            </div>
+            <div class="pillar">
+              <div class="pillar-num">03</div>
+              <div class="pillar-title">Centré Burkina</div>
+              <div class="pillar-desc">
+                Paiement Mobile Money local, catalogue en FCFA, interface
+                adaptée aux habitudes et aux contraintes réseau du marché.
+              </div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+            <span class="tag">Marketplace B2C</span>
+            <span class="tag">Multivendeurs</span>
+            <span class="tag">Panier + Commandes</span>
+            <span class="tag">Push Notifications</span>
+            <span class="tag">Programme de Parrainage</span>
+            <span class="tag">Dashboard Admin</span>
+            <span class="tag">Dashboard Vendeur</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 3 : FONCTIONNALITÉS ══ -->
+      <div class="slide" id="s3">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">Fonctionnalités</div>
+          <h2 style="margin-bottom: 2rem">
+            Ce que Sanhia fait <span class="gold">aujourd'hui.</span>
+          </h2>
+          <div class="grid4" style="margin-bottom: 1.5rem">
+            <div class="card">
+              <span class="card-icon">🛍️</span>
+              <div class="card-title">Catalogue produits</div>
+              <div class="card-desc">
+                Navigation par catégories, filtres, recherche temps réel
+                Firestore. Images Firebase Storage.
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-icon">🛒</span>
+              <div class="card-title">Panier & Commandes</div>
+              <div class="card-desc">
+                Ajout panier, checkout complet, suivi de commande côté acheteur
+                et vendeur.
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-icon">💳</span>
+              <div class="card-title">Paiement intégré</div>
+              <div class="card-desc">
+                Mobile Money (Orange, Moov), Cash on Delivery, Carte — adapté au
+                marché local.
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-icon">📊</span>
+              <div class="card-title">Dashboard Admin</div>
+              <div class="card-desc">
+                Gestion produits, vendeurs, commandes, analytics. Notifications
+                push FCM vers clients.
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-icon">🏪</span>
+              <div class="card-title">Espace Vendeur</div>
+              <div class="card-desc">
+                Seller dashboard avec stats, gestion stock, déduplication des
+                listeners Firestore.
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-icon">🎁</span>
+              <div class="card-title">Programme Parrainage</div>
+              <div class="card-desc">
+                Système de parrainage à paliers avec récompenses FCFA
+                automatisées.
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-icon">🔔</span>
+              <div class="card-title">Push Notifications</div>
+              <div class="card-desc">
+                FCM Web Push via Firebase Functions v2. VAPID configuré, tokens
+                enregistrés.
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-icon">📧</span>
+              <div class="card-title">Email Automation</div>
+              <div class="card-desc">
+                Abandoned cart, re-engagement flows via Resend. Functions avec
+                lazy instantiation.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 4 : MARCHÉ ══ -->
+      <div class="slide" id="s4">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">Marché Cible</div>
+          <h2 style="margin-bottom: 2rem">
+            Un marché en <span class="gold">pleine explosion.</span>
+          </h2>
+          <div class="grid2" style="gap: 3rem; align-items: center">
+            <div>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 1rem;
+                  margin-bottom: 2rem;
+                "
+              >
+                <div
+                  class="card"
+                  style="text-align: center; padding: 1.8rem 1rem"
+                >
+                  <div class="stat-num">22<span class="u">M</span></div>
+                  <div class="stat-label">Population Burkina Faso</div>
+                </div>
+                <div
+                  class="card"
+                  style="text-align: center; padding: 1.8rem 1rem"
+                >
+                  <div class="stat-num">47<span class="u">%</span></div>
+                  <div class="stat-label">Moins de 15 ans</div>
+                </div>
+                <div
+                  class="card"
+                  style="text-align: center; padding: 1.8rem 1rem"
+                >
+                  <div class="stat-num">65<span class="u">%</span></div>
+                  <div class="stat-label">Taux pénétration mobile</div>
+                </div>
+                <div
+                  class="card"
+                  style="text-align: center; padding: 1.8rem 1rem"
+                >
+                  <div class="stat-num">+31<span class="u">%</span></div>
+                  <div class="stat-label">Croissance e-com UEMOA / an</div>
+                </div>
+              </div>
+              <p class="sub" style="font-size: 0.88rem">
+                Cible principale :
+                <strong style="color: var(--white)"
+                  >urbains 18-35 ans à Ouagadougou</strong
+                >
+                — actifs sur Facebook, WhatsApp, Mobile Money. Acquisition via
+                micro-influenceurs locaux.
+              </p>
+            </div>
+            <div>
+              <div class="chart-wrap">
+                <div class="chart-title">
+                  Répartition cible acquisitions An.1
+                </div>
+                <div style="position: relative; height: 240px">
+                  <canvas
+                    id="chartMarket"
+                    role="img"
+                    aria-label="Répartition des canaux d'acquisition Sanhia"
+                    >Canaux : Facebook 45%, WhatsApp 30%, Influenceurs 15%,
+                    Bouche-à-oreille 10%</canvas
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    margin-top: 12px;
+                  "
+                >
+                  <span
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 5px;
+                      font-size: 11px;
+                      color: var(--gray);
+                    "
+                    ><span
+                      style="
+                        width: 9px;
+                        height: 9px;
+                        border-radius: 2px;
+                        background: #c9a84c;
+                        display: inline-block;
+                      "
+                    ></span
+                    >Facebook 45%</span
+                  >
+                  <span
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 5px;
+                      font-size: 11px;
+                      color: var(--gray);
+                    "
+                    ><span
+                      style="
+                        width: 9px;
+                        height: 9px;
+                        border-radius: 2px;
+                        background: #e8c97a;
+                        display: inline-block;
+                      "
+                    ></span
+                    >WhatsApp 30%</span
+                  >
+                  <span
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 5px;
+                      font-size: 11px;
+                      color: var(--gray);
+                    "
+                    ><span
+                      style="
+                        width: 9px;
+                        height: 9px;
+                        border-radius: 2px;
+                        background: #888;
+                        display: inline-block;
+                      "
+                    ></span
+                    >Influenceurs 15%</span
+                  >
+                  <span
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 5px;
+                      font-size: 11px;
+                      color: var(--gray);
+                    "
+                    ><span
+                      style="
+                        width: 9px;
+                        height: 9px;
+                        border-radius: 2px;
+                        background: #4a4a55;
+                        display: inline-block;
+                      "
+                    ></span
+                    >B-à-oreille 10%</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 5 : STACK TECH ══ -->
+      <div class="slide" id="s5">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">Stack Technique</div>
+          <h2 style="margin-bottom: 2rem">
+            Serverless. <span class="gold">Scalable.</span> Firebase.
+          </h2>
+          <div class="grid2" style="gap: 2.5rem">
+            <div style="display: flex; flex-direction: column; gap: 0.6rem">
+              <div class="stack-item">
+                <span class="stack-icon">🔥</span>
+                <div>
+                  <div class="stack-name">Firebase Firestore</div>
+                  <div class="stack-desc">
+                    Base de données temps réel · Collections imbriquées · Règles
+                    de sécurité
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">⚡</span>
+                <div>
+                  <div class="stack-name">Firebase Functions v2</div>
+                  <div class="stack-desc">
+                    API serverless · Email automation · Push notifications ·
+                    Resend
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">🔐</span>
+                <div>
+                  <div class="stack-name">Firebase Auth</div>
+                  <div class="stack-desc">
+                    Email/password · Google · Gestion des rôles
+                    admin/vendeur/acheteur
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">📦</span>
+                <div>
+                  <div class="stack-name">Firebase Storage</div>
+                  <div class="stack-desc">
+                    Images produits · Assets vendeurs · CDN global intégré
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">🔔</span>
+                <div>
+                  <div class="stack-name">FCM Web Push</div>
+                  <div class="stack-desc">
+                    Push notifications VAPID · Token registration · Broadcast
+                    admin
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">🌐</span>
+                <div>
+                  <div class="stack-name">Firebase Hosting</div>
+                  <div class="stack-desc">
+                    CDN global · SSL auto · Deploy en 30 secondes
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.6rem">
+              <div class="stack-item">
+                <span class="stack-icon">🎨</span>
+                <div>
+                  <div class="stack-name">Vanilla HTML / CSS / JS</div>
+                  <div class="stack-desc">
+                    Zéro framework · Performance maximale · Modules ES6
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">✒️</span>
+                <div>
+                  <div class="stack-name">Typographies Premium</div>
+                  <div class="stack-desc">
+                    Unbounded · Instrument Serif · Syne — Système obsidian &
+                    gold
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">📧</span>
+                <div>
+                  <div class="stack-name">Resend (Email)</div>
+                  <div class="stack-desc">
+                    Abandoned cart · Re-engagement · Transactionnel · Templates
+                    HTML
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">🤖</span>
+                <div>
+                  <div class="stack-name">Claude Code / Cursor</div>
+                  <div class="stack-desc">
+                    Agentic coding · Context window optimisé · Modules prime.js
+                    (21 pages)
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">🔒</span>
+                <div>
+                  <div class="stack-name">Sécurité</div>
+                  <div class="stack-desc">
+                    Firestore Rules · Auth guards · Audit sécurité complet
+                    réalisé
+                  </div>
+                </div>
+              </div>
+              <div class="stack-item">
+                <span class="stack-icon">🏦</span>
+                <div>
+                  <div class="stack-name">Paiement Local</div>
+                  <div class="stack-desc">
+                    Orange Money · Moov Money · Cash on Delivery · Architecture
+                    ouverte
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 6 : DESIGN SYSTEM ══ -->
+      <div class="slide" id="s6">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">Design System</div>
+          <h2 style="margin-bottom: 0.8rem">
+            Obsidian & Gold.<br /><span class="gold">L'identité Sanhia.</span>
+          </h2>
+          <p class="sub" style="margin-bottom: 2rem; max-width: 560px">
+            Chaque pixel est intentionnel. Le noir profond comme toile, l'or
+            comme signature — un langage visuel qui dit "luxe africain".
+          </p>
+          <div class="grid2" style="gap: 2rem; margin-bottom: 2rem">
+            <div>
+              <div
+                style="
+                  font-size: 0.7rem;
+                  letter-spacing: 0.1em;
+                  text-transform: uppercase;
+                  color: var(--gray);
+                  margin-bottom: 1rem;
+                "
+              >
+                Palette principale
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem">
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    background: var(--obsidian3);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 4px;
+                    padding: 0.7rem 1rem;
+                  "
+                >
+                  <div
+                    style="
+                      width: 28px;
+                      height: 28px;
+                      border-radius: 4px;
+                      background: #0a0a0b;
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                    "
+                  ></div>
+                  <span
+                    style="
+                      font-family: &quot;Syne&quot;, sans-serif;
+                      font-size: 0.82rem;
+                    "
+                    >Obsidian — #0A0A0B</span
+                  >
+                  <span
+                    style="
+                      margin-left: auto;
+                      font-size: 0.7rem;
+                      color: var(--gray);
+                    "
+                    >Background</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    background: var(--obsidian3);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 4px;
+                    padding: 0.7rem 1rem;
+                  "
+                >
+                  <div
+                    style="
+                      width: 28px;
+                      height: 28px;
+                      border-radius: 4px;
+                      background: #c9a84c;
+                    "
+                  ></div>
+                  <span
+                    style="
+                      font-family: &quot;Syne&quot;, sans-serif;
+                      font-size: 0.82rem;
+                    "
+                    >Or — #C9A84C</span
+                  >
+                  <span
+                    style="
+                      margin-left: auto;
+                      font-size: 0.7rem;
+                      color: var(--gray);
+                    "
+                    >Accent principal</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    background: var(--obsidian3);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 4px;
+                    padding: 0.7rem 1rem;
+                  "
+                >
+                  <div
+                    style="
+                      width: 28px;
+                      height: 28px;
+                      border-radius: 4px;
+                      background: #e8c97a;
+                    "
+                  ></div>
+                  <span
+                    style="
+                      font-family: &quot;Syne&quot;, sans-serif;
+                      font-size: 0.82rem;
+                    "
+                    >Or clair — #E8C97A</span
+                  >
+                  <span
+                    style="
+                      margin-left: auto;
+                      font-size: 0.7rem;
+                      color: var(--gray);
+                    "
+                    >Hover / Emphasis</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    background: var(--obsidian3);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 4px;
+                    padding: 0.7rem 1rem;
+                  "
+                >
+                  <div
+                    style="
+                      width: 28px;
+                      height: 28px;
+                      border-radius: 4px;
+                      background: #f0ede8;
+                    "
+                  ></div>
+                  <span
+                    style="
+                      font-family: &quot;Syne&quot;, sans-serif;
+                      font-size: 0.82rem;
+                    "
+                    >Ivoire — #F0EDE8</span
+                  >
+                  <span
+                    style="
+                      margin-left: auto;
+                      font-size: 0.7rem;
+                      color: var(--gray);
+                    "
+                    >Texte primaire</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                style="
+                  font-size: 0.7rem;
+                  letter-spacing: 0.1em;
+                  text-transform: uppercase;
+                  color: var(--gray);
+                  margin-bottom: 1rem;
+                "
+              >
+                Typographies
+              </div>
+              <div
+                style="
+                  background: var(--obsidian3);
+                  border: 1px solid rgba(201, 168, 76, 0.1);
+                  border-radius: var(--radius);
+                  padding: 1.5rem;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 1.2rem;
+                "
+              >
+                <div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: var(--gray);
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                      margin-bottom: 0.3rem;
+                    "
+                  >
+                    Titres — Unbounded 900
+                  </div>
+                  <div
+                    style="
+                      font-family: &quot;Unbounded&quot;, sans-serif;
+                      font-weight: 900;
+                      font-size: 1.6rem;
+                      color: var(--gold);
+                      letter-spacing: -0.03em;
+                    "
+                  >
+                    SANHIA
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: var(--gray);
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                      margin-bottom: 0.3rem;
+                    "
+                  >
+                    Sous-titres — Syne 700
+                  </div>
+                  <div
+                    style="
+                      font-family: &quot;Syne&quot;, sans-serif;
+                      font-weight: 700;
+                      font-size: 1rem;
+                      color: var(--white);
+                    "
+                  >
+                    Marketplace Premium Afrique
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: var(--gray);
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                      margin-bottom: 0.3rem;
+                    "
+                  >
+                    Corps — DM Sans 300
+                  </div>
+                  <div
+                    style="
+                      font-family: &quot;DM Sans&quot;, sans-serif;
+                      font-weight: 300;
+                      font-size: 0.88rem;
+                      color: var(--gray);
+                      line-height: 1.6;
+                    "
+                  >
+                    Une expérience d'achat pensée pour le marché burkinabè
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            style="
+              background: var(--obsidian3);
+              border: 1px solid rgba(201, 168, 76, 0.12);
+              border-radius: var(--radius);
+              padding: 1.2rem 1.8rem;
+              display: flex;
+              align-items: center;
+              gap: 1.5rem;
+              flex-wrap: wrap;
+            "
+          >
+            <span style="font-size: 0.72rem; color: var(--gray)"
+              >Objectif design :</span
+            >
+            <span class="tag">Awwwards Honorable Mention</span>
+            <span class="tag">Site of the Day</span>
+            <span style="font-size: 0.78rem; color: var(--gray)"
+              >— "Aussi belle que Shopify, mais africaine."</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 7 : ACQUISITION ══ -->
+      <div class="slide" id="s7">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">
+            Stratégie de Croissance
+          </div>
+          <h2 style="margin-bottom: 2rem">
+            Acquisition <span class="gold">Burkina Faso.</span>
+          </h2>
+          <div class="grid2" style="gap: 2.5rem">
+            <div>
+              <div class="grid2" style="gap: 1rem; margin-bottom: 1.5rem">
+                <div class="card">
+                  <span class="card-icon">📱</span>
+                  <div class="card-title">Facebook Ads</div>
+                  <div class="card-desc">
+                    Ciblage Ouagadougou 18–35 ans. Vidéos courtes produits. ROI
+                    mesuré en temps réel.
+                  </div>
+                </div>
+                <div class="card">
+                  <span class="card-icon">💬</span>
+                  <div class="card-title">WhatsApp Groups</div>
+                  <div class="card-desc">
+                    Partage viral dans les groupes de quartier et associations
+                    professionnelles.
+                  </div>
+                </div>
+                <div class="card">
+                  <span class="card-icon">⭐</span>
+                  <div class="card-title">Micro-influenceurs</div>
+                  <div class="card-desc">
+                    Partenariats avec 5–10 influenceurs burkinabè (5K–50K
+                    followers). Authenticité locale.
+                  </div>
+                </div>
+                <div class="card">
+                  <span class="card-icon">🤝</span>
+                  <div class="card-title">Parrainage viral</div>
+                  <div class="card-desc">
+                    Programme à paliers : récompenses FCFA pour chaque filleul
+                    actif. Croissance organique.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                style="
+                  font-size: 0.7rem;
+                  letter-spacing: 0.1em;
+                  text-transform: uppercase;
+                  color: var(--gray);
+                  margin-bottom: 1rem;
+                "
+              >
+                Croissance utilisateurs projetée
+              </div>
+              <div class="chart-wrap" style="padding: 1.2rem">
+                <div style="position: relative; height: 200px">
+                  <canvas
+                    id="chartGrowth"
+                    role="img"
+                    aria-label="Croissance utilisateurs Sanhia sur 12 mois"
+                    >Croissance de 0 à 50 000 utilisateurs en 12 mois.</canvas
+                  >
+                </div>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 1.5rem;
+                  margin-top: 1.5rem;
+                  flex-wrap: wrap;
+                "
+              >
+                <div>
+                  <div class="stat-num" style="font-size: 1.6rem">
+                    50<span class="u">K</span>
+                  </div>
+                  <div class="stat-label">Cible An.1</div>
+                </div>
+                <div>
+                  <div class="stat-num" style="font-size: 1.6rem">
+                    3<span class="u">%</span>
+                  </div>
+                  <div class="stat-label">Conversion visiteurs</div>
+                </div>
+                <div>
+                  <div class="stat-num" style="font-size: 1.6rem">
+                    8<span class="u">K</span>
+                  </div>
+                  <div class="stat-label">FCFA panier moyen</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 8 : ROADMAP ══ -->
+      <div class="slide" id="s8">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">Roadmap</div>
+          <h2 style="margin-bottom: 2rem">
+            Du MVP au <span class="gold">leader régional.</span>
+          </h2>
+          <div class="grid2" style="gap: 3rem; align-items: start">
+            <div class="timeline">
+              <div class="t-item">
+                <div class="t-dot"></div>
+                <div class="t-phase">Phase 1 · MVP — En cours</div>
+                <div class="t-title">Core platform opérationnel</div>
+                <div class="t-desc">
+                  Catalogue, panier, checkout, auth, paiement Mobile Money,
+                  dashboard admin + vendeur. Push notifications FCM.
+                </div>
+              </div>
+              <div class="t-item">
+                <div
+                  class="t-dot"
+                  style="background: rgba(201, 168, 76, 0.4)"
+                ></div>
+                <div class="t-phase">Phase 2 · Q3 2026</div>
+                <div class="t-title">Croissance & fidélisation</div>
+                <div class="t-desc">
+                  Programme de parrainage complet, reviews produits, chat
+                  vendeur-acheteur, livraison trackée, abonnements.
+                </div>
+              </div>
+              <div class="t-item">
+                <div
+                  class="t-dot"
+                  style="background: rgba(201, 168, 76, 0.2)"
+                ></div>
+                <div class="t-phase">Phase 3 · Q1 2027</div>
+                <div class="t-title">Expansion UEMOA</div>
+                <div class="t-desc">
+                  Côte d'Ivoire, Sénégal, Mali. Multidevises FCFA. Logistique
+                  cross-border. App mobile native.
+                </div>
+              </div>
+              <div class="t-item" style="padding-bottom: 0">
+                <div
+                  class="t-dot"
+                  style="background: rgba(201, 168, 76, 0.1)"
+                ></div>
+                <div class="t-phase">Phase 4 · 2027+</div>
+                <div class="t-title">Domination Afrique de l'Ouest</div>
+                <div class="t-desc">
+                  Marketplace financière, micro-crédit vendeurs, data analytics
+                  B2B, partenariats institutionnels.
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem">
+              <div
+                style="
+                  font-size: 0.7rem;
+                  letter-spacing: 0.1em;
+                  text-transform: uppercase;
+                  color: var(--gray);
+                  margin-bottom: 0.5rem;
+                "
+              >
+                Modules développés
+              </div>
+              <div
+                style="
+                  background: var(--obsidian3);
+                  border: 1px solid rgba(201, 168, 76, 0.1);
+                  border-radius: var(--radius);
+                  padding: 1.2rem;
+                "
+              >
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 0.5rem;
+                  "
+                >
+                  <div id="mod-list"></div>
+                  <div id="mod-list2"></div>
+                </div>
+              </div>
+              <div
+                class="card"
+                style="
+                  border-left: 2px solid var(--gold);
+                  border-radius: 0 var(--radius) var(--radius) 0;
+                "
+              >
+                <div
+                  style="
+                    font-size: 0.72rem;
+                    color: var(--gold);
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    margin-bottom: 0.4rem;
+                  "
+                >
+                  Modules prime.js
+                </div>
+                <div style="font-size: 0.82rem; color: var(--gray)">
+                  21 modules de page unifiés dans un fichier central —
+                  architecture propre, performante, sans duplication.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 9 : EVENEMENTS ══ -->
+      <div class="slide" id="s9">
+        <div class="slide-inner">
+          <div class="label" style="margin-bottom: 1rem">Écosystème Sanhia</div>
+          <h2 style="margin-bottom: 0.7rem">
+            Au-delà de la <span class="gold">marketplace.</span>
+          </h2>
+          <p class="sub" style="margin-bottom: 2.5rem; max-width: 560px">
+            Sanhia n'est pas qu'une boutique en ligne — c'est un mouvement
+            culturel qui valorise la créativité et l'entrepreneuriat burkinabè.
+          </p>
+          <div class="grid3" style="margin-bottom: 2rem">
+            <div class="card" style="border-top: 2px solid var(--gold)">
+              <span class="card-icon" style="font-size: 1.6rem">🎉</span>
+              <div class="card-title">Savage Party · 18 Juillet 2026</div>
+              <div class="card-desc">
+                Showcase événementiel à Ouagadougou. Présentation Sanhia en
+                live, partenaires vendeurs, micro-influenceurs. Activation
+                terrain.
+              </div>
+              <div style="margin-top: 0.8rem">
+                <span class="tag">Ouagadougou</span>
+              </div>
+            </div>
+            <div
+              class="card"
+              style="border-top: 2px solid rgba(201, 168, 76, 0.4)"
+            >
+              <span class="card-icon" style="font-size: 1.6rem">🌴</span>
+              <div class="card-title">Tropical Vibes · 26 Sept 2026</div>
+              <div class="card-desc">
+                Soirée immersive. Expérience produits Sanhia en conditions
+                réelles. Communauté early adopters. Presse locale invitée.
+              </div>
+              <div style="margin-top: 0.8rem">
+                <span class="tag">Experience</span>
+              </div>
+            </div>
+            <div
+              class="card"
+              style="border-top: 2px solid rgba(201, 168, 76, 0.2)"
+            >
+              <span class="card-icon" style="font-size: 1.6rem">🏛️</span>
+              <div class="card-title">Maison Fenel</div>
+              <div class="card-desc">
+                Marque de luxe africaine en cours de structuration. Vitrine sur
+                Sanhia dès le lancement — symbole de ce que la plateforme rend
+                possible.
+              </div>
+              <div style="margin-top: 0.8rem">
+                <span class="tag">Luxury brand</span>
+              </div>
+            </div>
+          </div>
+          <div
+            style="
+              background: var(--obsidian3);
+              border: 1px solid rgba(201, 168, 76, 0.15);
+              border-radius: var(--radius);
+              padding: 1.5rem 2rem;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: flex-start;
+                gap: 2rem;
+                flex-wrap: wrap;
+              "
+            >
+              <div>
+                <div
+                  style="
+                    font-size: 0.7rem;
+                    color: var(--gray);
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    margin-bottom: 0.3rem;
+                  "
+                >
+                  Vision long terme
+                </div>
+                <p
+                  style="
+                    font-size: 0.9rem;
+                    color: var(--white);
+                    line-height: 1.65;
+                    max-width: 600px;
+                  "
+                >
+                  "Sanhia doit devenir ce que Jumia n'a jamais réussi à être en
+                  Afrique de l'Ouest — une marketplace
+                  <span style="color: var(--gold)"
+                    >authentiquement africaine</span
+                  >, premium, qui rend fiers ses utilisateurs."
+                </p>
+              </div>
+              <div style="flex-shrink: 0">
+                <div class="stat-num" style="font-size: 1.8rem">
+                  2027<span class="u"></span>
+                </div>
+                <div class="stat-label">Leader UEMOA</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLIDE 10 : CONTACT ══ -->
+      <div class="slide" id="s10">
+        <div class="center pad" style="position: relative; min-height: 100vh">
+          <div class="hero-bg"><div class="dot-grid"></div></div>
+          <div
+            style="
+              position: relative;
+              z-index: 1;
+              text-align: center;
+              max-width: 600px;
+            "
+          >
+            <div
+              class="label"
+              style="justify-content: center; margin-bottom: 1.5rem"
+            >
+              Rejoindre l'aventure
+            </div>
+            <h2 style="margin-bottom: 1.2rem">
+              Le Burkina mérite<br /><span class="gold">sa marketplace.</span>
+            </h2>
+            <p class="sub" style="margin-bottom: 3rem">
+              Sanhia est en construction active. Vendeurs, partenaires,
+              investisseurs — si vous croyez en l'entrepreneuriat africain
+              premium, parlons-en.
+            </p>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+                margin-bottom: 2.5rem;
+              "
+            >
+              <div class="card" style="text-align: center">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem">🏪</div>
+                <div
+                  style="
+                    font-family: &quot;Syne&quot;, sans-serif;
+                    font-weight: 700;
+                    font-size: 0.85rem;
+                    margin-bottom: 0.3rem;
+                  "
+                >
+                  Devenir Vendeur
+                </div>
+                <div style="font-size: 0.75rem; color: var(--gray)">
+                  Rejoignez les premiers vendeurs Sanhia
+                </div>
+              </div>
+              <div
+                class="card"
+                style="
+                  text-align: center;
+                  border-color: rgba(201, 168, 76, 0.3);
+                "
+              >
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem">💼</div>
+                <div
+                  style="
+                    font-family: &quot;Syne&quot;, sans-serif;
+                    font-weight: 700;
+                    font-size: 0.85rem;
+                    margin-bottom: 0.3rem;
+                  "
+                >
+                  Partenariat
+                </div>
+                <div style="font-size: 0.75rem; color: var(--gray)">
+                  Marques, institutions, logistique
+                </div>
+              </div>
+              <div class="card" style="text-align: center">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem">📈</div>
+                <div
+                  style="
+                    font-family: &quot;Syne&quot;, sans-serif;
+                    font-weight: 700;
+                    font-size: 0.85rem;
+                    margin-bottom: 0.3rem;
+                  "
+                >
+                  Investir
+                </div>
+                <div style="font-size: 0.75rem; color: var(--gray)">
+                  Seed round ouvert dès Phase 2
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+              "
+            >
+              <span class="tag">sanhia.bf</span>
+              <span class="tag">Ouagadougou · Burkina Faso</span>
+              <span class="tag">2026</span>
+            </div>
+            <div
+              style="
+                margin-top: 2.5rem;
+                padding-top: 1.5rem;
+                border-top: 1px solid rgba(201, 168, 76, 0.15);
+              "
+            >
+              <div
+                style="
+                  font-family: &quot;Unbounded&quot;, sans-serif;
+                  font-weight: 900;
+                  font-size: 3rem;
+                  color: rgba(201, 168, 76, 0.15);
+                  letter-spacing: -0.04em;
+                "
+              >
+                SANHIA
+              </div>
+              <div
+                style="
+                  font-size: 0.72rem;
+                  color: var(--gray);
+                  letter-spacing: 0.08em;
+                  text-transform: uppercase;
+                  margin-top: 0.3rem;
+                "
+              >
+                Rassembler · Valoriser · Élever
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /deck -->
+
+    <!-- NAV -->
+    <div id="nav">
+      <button class="nav-btn" id="prev">←</button>
+      <div id="dots"></div>
+      <span id="slide-counter">1 / 11</span>
+      <button class="nav-btn" id="next">→</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script>
+      const SLIDES = document.querySelectorAll(".slide");
+      const N = SLIDES.length;
+      let cur = 0;
+
+      /* dots */
+      const dotsEl = document.getElementById("dots");
+      for (let i = 0; i < N; i++) {
+        const b = document.createElement("button");
+        b.className = "nav-dot" + (i === 0 ? " on" : "");
+        b.onclick = () => goTo(i);
+        dotsEl.appendChild(b);
+      }
+
+      function goTo(n) {
+        if (n < 0 || n >= N) return;
+        const prev = cur;
+        SLIDES[prev].classList.add("exit");
+        setTimeout(() => SLIDES[prev].classList.remove("active", "exit"), 420);
+        cur = n;
+        SLIDES[cur].classList.add("active");
+        SLIDES[cur].scrollTop = 0;
+        document
+          .querySelectorAll(".nav-dot")
+          .forEach((d, i) => d.classList.toggle("on", i === cur));
+        document.getElementById("slide-counter").textContent =
+          `${cur + 1} / ${N}`;
+      }
+
+      document.getElementById("prev").onclick = () => goTo(cur - 1);
+      document.getElementById("next").onclick = () => goTo(cur + 1);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") goTo(cur + 1);
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") goTo(cur - 1);
+      });
+
+      /* swipe */
+      let tx = 0;
+      document.getElementById("deck").addEventListener(
+        "touchstart",
+        (e) => {
+          tx = e.touches[0].clientX;
+        },
+        { passive: true },
+      );
+      document.getElementById("deck").addEventListener(
+        "touchend",
+        (e) => {
+          const dx = e.changedTouches[0].clientX - tx;
+          if (Math.abs(dx) > 50) {
+            dx < 0 ? goTo(cur + 1) : goTo(cur - 1);
+          }
+        },
+        { passive: true },
+      );
+
+      document.getElementById("deck").addEventListener("click", (e) => {
+        if (window.innerWidth > 720) return;
+        if (e.target.closest("button, a, input, textarea, select, label")) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        if (x < rect.width * 0.4) goTo(cur - 1);
+        else if (x > rect.width * 0.6) goTo(cur + 1);
+      });
+
+      /* ── CHART: Donut acquisition ── */
+      new Chart(document.getElementById("chartMarket"), {
+        type: "doughnut",
+        data: {
+          labels: [
+            "Facebook",
+            "WhatsApp",
+            "Micro-influenceurs",
+            "Bouche-à-oreille",
+          ],
+          datasets: [
+            {
+              data: [45, 30, 15, 10],
+              backgroundColor: ["#C9A84C", "#E8C97A", "#888780", "#4A4A55"],
+              borderWidth: 2,
+              borderColor: "#111114",
+              hoverOffset: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw}%` } },
+          },
+          cutout: "62%",
+        },
+      });
+
+      /* ── CHART: Croissance utilisateurs ── */
+      const months = [
+        "J",
+        "F",
+        "M",
+        "A",
+        "M",
+        "J",
+        "J",
+        "A",
+        "S",
+        "O",
+        "N",
+        "D",
+      ];
+      const users = [
+        200, 600, 1500, 3000, 6000, 10000, 15000, 22000, 30000, 38000, 44000,
+        50000,
+      ];
+      new Chart(document.getElementById("chartGrowth"), {
+        type: "line",
+        data: {
+          labels: months,
+          datasets: [
+            {
+              data: users,
+              borderColor: "#C9A84C",
+              backgroundColor: "rgba(201,168,76,0.07)",
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              pointHoverBackgroundColor: "#C9A84C",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (c) => ` ${c.raw.toLocaleString()} utilisateurs`,
+              },
+            },
+          },
+          scales: {
+            y: {
+              grid: { color: "rgba(255,255,255,0.04)", drawBorder: false },
+              ticks: {
+                padding: 6,
+                callback: (v) => (v >= 1000 ? v / 1000 + "K" : v),
+                color: "#7A7A85",
+                font: { size: 10 },
+              },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: "#7A7A85", font: { size: 10 } },
+            },
+          },
+        },
+      });
+
+      /* ── MODULES LIST ── */
+      const mods1 = [
+        "header.js",
+        "footer.js",
+        "admin.js",
+        "app.js",
+        "categories.js",
+        "config.js",
+        "data.js",
+        "prime.js",
+        "seller.js",
+        "cart.js",
+        "auth.js",
+      ];
+      const mods2 = [
+        "checkout.js",
+        "notifications.js",
+        "referral.js",
+        "email-flows.js",
+        "firestore-rules",
+        "fcm-tokens",
+        "resend-integration",
+        "functions/index.js",
+        "storage.js",
+        "analytics.js",
+        "404.html",
+      ];
+      function renderMods(id, arr) {
+        const el = document.getElementById(id);
+        el.innerHTML = arr
+          .map(
+            (m) =>
+              `<div style="font-size:.72rem;color:var(--gray);padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,0.03);font-family:monospace">◆ ${m}</div>`,
+          )
+          .join("");
+      }
+      renderMods("mod-list", mods1);
+      renderMods("mod-list2", mods2);
+    </script>
+  </body>
+</html>
