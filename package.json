@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Sanhia - Premium E-Commerce Marketplace for Burkina Faso",
   "scripts": {
-    "build": "mkdir -p dist && cp index.html dist/"
+    "build": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('index.html','dist/index.html');console.log('Build complete: dist/index.html');\""
   },
   "keywords": ["ecommerce", "burkina-faso", "marketplace"],
   "author": "Daren Allan",

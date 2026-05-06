@@ -1,11 +1,10 @@
 services:
-  - type: static
+  - type: web
     name: sanhia
+    env: static
     buildCommand: npm run build
-    publishPath: dist
-    staticPublishPath: /
+    staticPublishPath: dist
     routes:
-      - path: /
-        dest: /index.html
-      - path: /*
-        dest: /index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
