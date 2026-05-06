@@ -1,0 +1,11 @@
+{
+  "name": "sanhia",
+  "version": "1.0.0",
+  "description": "Sanhia - Premium E-Commerce Marketplace for Burkina Faso",
+  "scripts": {
+    "build": "mkdir -p dist && cp index.html dist/"
+  },
+  "keywords": ["ecommerce", "burkina-faso", "marketplace"],
+  "author": "Daren Allan",
+  "license": "MIT"
+}
